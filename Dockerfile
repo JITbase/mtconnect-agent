@@ -1,7 +1,7 @@
 # Use ubuntu trusty tar (14.04 LTS) as base image
-FROM synec/nvm
+FROM synec/nvm-node
 
-MAINTAINER System Insights
+# MAINTAINER System Insights
 
 # Replace shell with bash so we can source files
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
@@ -15,8 +15,8 @@ ENV NODE_VERSION=6.2.0
 ENV NVM_DIR=/root/.nvm
 
 # Install xmllint
-RUN apt-get update && apt-get install -y \
-    libxml2-utils
+# RUN apt-get update && apt-get install -y \
+#     libxml2-utils
 
 # Fetch and install nodejs via nvm
 RUN source $NVM_DIR/nvm.sh \

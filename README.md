@@ -42,6 +42,10 @@ There are few simulators avalaible at this moment. They can be found at the adap
 
     $ npm run simulator or $ npm run simulator2
 
+To map the simulator file fileserver port from docker to your system use
+
+    $ Docker run -it -p 8080:8080 image-name
+
 The adapter will start sending UPnP NOTIFY messages in the network. It
 will also contain LOCATION information providing the socket to read
 data from.  A Wireshark capture is shown below:
@@ -95,11 +99,11 @@ Eg at: "http://localhost:7000/current?at=100"
    path: "http://localhost:7000/current?path=//Axes"
    path and at: "http://localhost:7000/current?path=//Axes&at=100"
 In path you can specify type, subType, name and category also.
-Eg: 'path=//Rotary//DataItem[subType="OVERRIDE"]' or 'path=//Rotary//DataItem[type="LOAD"]' or 'path=//Linear[@name="Z" and @name="X"]//DataItem[@category="EVENT" and @category="SAMPLE"]' 
+Eg: 'path=//Rotary//DataItem[subType="OVERRIDE"]' or 'path=//Rotary//DataItem[type="LOAD"]' or 'path=//Linear[@name="Z" and @name="X"]//DataItem[@category="EVENT" and @category="SAMPLE"]'
 
 To get current of a particular device - "http://localhost:7000/VMC-3Axis/current" or
 specify 'path=//Device[@name="VMC-3Axis"]'
-"VMC-3Axis" is the device name  or specify 'path=//Device[@uuid="111"]' "111" is device's uuid. You can specify 2 or more at the same time 'path=//Device[@uuid="000" and @uuid="111"]' 
+"VMC-3Axis" is the device name  or specify 'path=//Device[@uuid="111"]' "111" is device's uuid. You can specify 2 or more at the same time 'path=//Device[@uuid="000" and @uuid="111"]'
 
 
 /sample
@@ -110,7 +114,7 @@ open a web browser and type "http://localhost:7000/sample" in the adress bar to 
 sample - component's dataItems.
 
 You can specify 'path' and 'from&count' also.
-Eg: path:  "http://localhost:7000/sample?path=//Axes" or 
+Eg: path:  "http://localhost:7000/sample?path=//Axes" or
     path=//Linear[@name="Z" and @name="X"]//DataItem[@category="EVENT" and @category="SAMPLE"]
 
     from&count: "http://localhost:7000/sample?from=1037&count=6" PS: count should be within 10.
@@ -131,13 +135,13 @@ Eg: http://localhost:7000/asset/EM233. PS: EM233 is the assetId
 Similarly multiple assets can be specified by separating the assetIds by ';'.
 Eg: http://localhost:7000/asset/EM233;EM262
 
-You can specify type of asset, count, device and removed 
+You can specify type of asset, count, device and removed
 Eg: type: /assets?type=CuttingTool,
     count: /assets?type=CuttingTool&count=2,
     device: /assets?device=VMC-3Axis,
     removed: /assets?removed=true, show all the assets even the ones that have been removed
 
-You can use all of them together /assets?device=VMC-3Axis&type=CuttingTool&count=2. Order in which they appear does not matter.  
+You can use all of them together /assets?device=VMC-3Axis&type=CuttingTool&count=2. Order in which they appear does not matter.
 
 
 Development
@@ -157,7 +161,7 @@ Start the agent. It will look for devices on network and act on them.
 Tests
 -----
 
-Run all tests with 
+Run all tests with
 
     npm test
 
@@ -180,7 +184,7 @@ invocation is shown below:
 Code Climate
 ------
 
-The [Airbnb JavaScript](https://github.com/airbnb/javascript) style guide is used as a reference. 
+The [Airbnb JavaScript](https://github.com/airbnb/javascript) style guide is used as a reference.
 
 Lint
 ------
