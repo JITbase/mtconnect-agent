@@ -1,0 +1,21 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run debug mode",
+      "args": ["NODE_ENV=development"],
+      "program": "${workspaceRoot}/adapters/simulatorElastic/index.js",
+      "cwd": "${workspaceRoot}",
+      "runtimeExecutable": null,
+      "outputCapture" : "std",
+      "env":{
+        "MTC_LOG_DIR":"MTC_LOG_DIR"
+      }
+    },
+  ]
+}

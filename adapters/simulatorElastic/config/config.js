@@ -9,16 +9,16 @@ module.exports = {
   machinePort: 7879,
   filePort: 8080,
   maxDelay: 3000,
-  urn: 'Simulator1',
+  urn: 'SimulatorElastic',
   manufacturer: 'SystemInsights',
   modelName: 'Simulator',
   serialNumber: '123456',
   inputFile: './adapters/simulator/public/Mazak01.log',
   deviceFile: './adapters/simulator/public/Mazak01.xml',
-  acceleration: 1,
+  acceleration: 4,
 
   app: {
-    name: 'Simulator_1',
+    name: 'Simulator_Elastic',
     version: '0.1'
   },
 
@@ -31,7 +31,7 @@ module.exports = {
     index:'jitbase-workstation-events-production-leesta-*',
     pageSize: 100,
     date:{
-      from: 'now-1d/d',
+      from: 'now-2d/d',
       to: 'now/d',
       format: null
     },
