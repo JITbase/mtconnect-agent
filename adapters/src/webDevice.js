@@ -9,6 +9,7 @@ const LineByLine = require('line-by-line')
 const InfStream = require('../utils/infstream')
 const elasticsearch = require('elasticsearch');
 const moment = require('moment');
+const ArrayReader = require('./arrayReader');
 
 log.info = log.info.bind(log);
 
@@ -126,9 +127,19 @@ function device(elasticSource, accelleration, port) {
         const resultsLastTimestamp  = data[data.length - 1].timestamp;
         let dataToSend = processElasticResultsResults(data);
 
+        const reader = new ArrayReader(dataToSend);
+        reader.on('element', (data)=>{
+          console.log(data);
+        });
+        reader.on('end', ()=>{
+          console.log('array done reading');
+        });
+
+        reader.start();
+
         broadcastData(dataToSend)
         .then(results => {
-          if(!socketActive) resolve();
+          if(!socketActive) return resolve();
           resolve(getNext(resultsLastTimestamp))
         });
       })
