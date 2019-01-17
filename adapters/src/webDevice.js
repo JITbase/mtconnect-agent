@@ -36,60 +36,50 @@ function device(elasticSource, accelleration, port) {
       ],
     });
 
-    const broadcastData = (events, index) => new Promise((resolve, reject) => {
-      // if the socket is closed, stop processing
-      if(!socketActive)  return resolve();
+    const updateEventTimestamp = (event, previousEvent, nextEvent)=>{
+      event.originalTimestamp = event.timestamp;
 
-      // if the index is outside the range, stop processing
-      index = index || 0;
-      let event = events[index];
-      if(!event) return resolve();
+      if(previousEvent){
+        let previousOriginalMoment = moment(previousEvent.originalTimestamp);
+        let previousMoment = moment(previousEvent.timestamp);
+        let currentMoment = moment(event.timestamp);
 
-      const dataToWrite = `${event.timestamp}|${event.raw.name}|${event.value}\n`;
-      console.log(dataToWrite);
-      socket.write(dataToWrite);
-      console.log(`next event in ${moment.duration(event.timeToNextEvent || 0, 'ms').humanize()}`)
-      setTimeout(() => {
-        resolve(broadcastData(events, index += 1));
-        //broadcastData(events, index+=1).then(resolve);
-      }, 1000);
-      //}, event.timeToNextEvent || 0);
-    });
+        // time between events
+        let diff = currentMoment.diff(previousOriginalMoment, 'milliseconds');
 
-    const processElasticResultsResults = data =>{
+        // time between events accelerated
+        let diffWithAccellerator = Math.ceil((diff || 0)/accelleration);
+
+        // current event timestamp = previous timestamp + accelerated difference
+        let newTimestamp = previousMoment.add(diffWithAccellerator, 'milliseconds');
+        event.timestamp = newTimestamp.toISOString();
+      }else{
+        event.timestamp = (new Date).toISOString();
+      }
+
+      if(nextEvent){
+        let nextEventMoment = moment(nextEvent.timestamp)
+        let currentEventOriginalMoment = moment(event.originalTimestamp);
+        let timeToNextEvent = nextEventMoment.diff(currentEventOriginalMoment, 'millisecond');
+        let timeToNextEventWithAccellerator = Math.ceil((timeToNextEvent || 0)/accelleration);
+        event.timeToNextEvent = timeToNextEventWithAccellerator || 1000;
+      }
+      return event;
+    }
+
+    const transformEventsToCurrentDateTime = (data, lastBroadcastEvent) =>{
       if(!(data && Array.isArray(data) && data.length)) return [];
-      // update the timestamps of the resutls
-      let dataToSend = data.map((event, i, array)=>{
-        event.originalTimestamp = event.timestamp;
-        if(!i)
-          event.timestamp = (new Date()).toISOString();
-        else{
-          let previousOriginalMoment = moment(array[i-1].originalTimestamp);
-          let previousMoment = moment(array[i-1].timestamp);
-          let currentMoment = moment(event.timestamp);
-          let diff = currentMoment.diff(previousOriginalMoment, 'milliseconds');
-          let diffWithAccellerator = Math.ceil((diff || 0)/accelleration);
-          let newTimestamp = previousMoment.add(diffWithAccellerator, 'milliseconds');
-          event.timestamp = newTimestamp.toISOString();
-          event.diff;
-        }
 
-        if(i+1 < data.length){
-          let nextEvent = data[i+1];
-          let nextEventMoment = moment(nextEvent.timestamp)
-          let currentEventOriginalMoment = moment(event.originalTimestamp);
-          let timeToNextEvent = nextEventMoment.diff(currentEventOriginalMoment, 'millisecond');
-          let timeToNextEventWithAccellerator = Math.ceil((timeToNextEvent || 0)/accelleration);
-          event.timeToNextEvent = timeToNextEventWithAccellerator;
-        }
+      let dataToSend = data.map((event, i, array)=>{
+        let nextEvent = i+1<data.length ? data[i+1] : null;
+        event = updateEventTimestamp(event, lastBroadcastEvent || array[i-1], nextEvent);
         return event;
       });
       return dataToSend;
     }
 
-    const getNext = lastTimestamp => new Promise((resolve, reject) =>{
-      if(!socketActive) resolve();
-      console.log('getting next 10');
+    const getNext = lastTimestamp => {
+      console.log('getting next');
       let body = {
         query: {
           bool:{
@@ -103,58 +93,60 @@ function device(elasticSource, accelleration, port) {
           }
         },
         sort: [{timestamp: { order: "asc" }}],
-        size:10
+        size:elasticSource.pageSize,
       };
       if(elasticSource.date.format) body.query.bool.filter[1].range.timestamp.format = elasticSource.date.format;
 
-      elasticClient.search({
+      return elasticClient.search({
         index: elasticSource.index,
         type: '_doc',
         body: body
-      })
-      .then(results => {
+      });
+    };
 
-        if(!results.hits.total) {
-          socket.end();
-          log.info('End of file');
-          socketActive = false;
-          return resolve();
-        }
+    const endBroadcast = ()=>{
+      socket.end();
+      log.info('End of data');
+      socketActive = false;
+    };
 
-        // get the source
-        let data = results.hits.hits.map(hit => hit._source);
-        // get the last timestamp of the results
-        const resultsLastTimestamp  = data[data.length - 1].timestamp;
-        let dataToSend = processElasticResultsResults(data);
+    const broadcastEvents = (elasticResults, lastBroadcastEvent) => {
+      if(!socketActive) return endBroadcast();
+      if(!elasticResults.hits.total) return endBroadcast();
 
-        const reader = new ArrayReader(dataToSend);
-        reader.on('element', (data)=>{
-          console.log(data);
-        });
-        reader.on('end', ()=>{
-          console.log('array done reading');
-        });
+      // get the source
+      let elasticHits = elasticResults.hits.hits.map(hit => hit._source);
+      let events = transformEventsToCurrentDateTime(elasticHits, lastBroadcastEvent);
 
-        reader.start();
+      // last event
+      const newLastBroadcastEvent = events[events.length-1];
+      const resultsLastTimestamp  = newLastBroadcastEvent.originalTimestamp;
 
-        broadcastData(dataToSend)
-        .then(results => {
-          if(!socketActive) return resolve();
-          resolve(getNext(resultsLastTimestamp))
-        });
-      })
-      .catch(log.error.bind(log));
-    });
+      const reader = new ArrayReader(events);
 
+      reader.on('end', ()=>{
+        console.log('reader end');
+        return getNext(resultsLastTimestamp)
+        .then(results => broadcastEvents(results, newLastBroadcastEvent));
+      });
+
+      reader.on('element', event=>{
+        reader.pause();
+        const dataToWrite = `${event.timestamp}|${event.raw.name}|${event.value}\n`;
+        console.log(dataToWrite);
+        socket.write(dataToWrite);
+        setTimeout(()=>{
+          reader.resume();
+        }, 1000);
+        //}, event.timeToNextEvent);
+      });
+    };
 
 
     // start get first values
     getNext()
-    .then(results => {
-      socketActive = false;
-      //let isSocketActive = socketActive;
-      socket.end();
-    });
+    .then(broadcastEvents)
+    .catch(log.error.bind(log));
 
     // Implement Ping/Pong protocol for heartbeats.
     socket.on('data', data => {

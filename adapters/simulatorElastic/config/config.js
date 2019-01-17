@@ -29,9 +29,9 @@ module.exports = {
 
   elasticSource:{
     index:'jitbase-workstation-events-production-leesta-*',
-    pageSize: 100,
+    pageSize: 10,
     date:{
-      from: 'now-2d/d',
+      from: 'now-1d/d',
       to: 'now/d',
       format: null
     },
