@@ -10,6 +10,7 @@ const InfStream = require('../utils/infstream')
 const elasticsearch = require('elasticsearch');
 const moment = require('moment');
 const ArrayReader = require('./arrayReader');
+const workstationEventCodes = require('./workstationEventCodes')
 
 log.info = log.info.bind(log);
 
@@ -72,7 +73,12 @@ function device(elasticSource, accelleration, port) {
 
       let dataToSend = data.map((event, i, array)=>{
         let nextEvent = i+1<data.length ? data[i+1] : null;
+
+        // map event timestap to current date/with with acceleration
         event = updateEventTimestamp(event, lastBroadcastEvent || array[i-1], nextEvent);
+
+        // Map the name, value and rawName data to workstation data
+        event = workstationEventCodes.fetch(event);
         return event;
       });
       return dataToSend;

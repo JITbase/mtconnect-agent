@@ -13,9 +13,13 @@ module.exports = {
   manufacturer: 'SystemInsights',
   modelName: 'Simulator',
   serialNumber: '123456',
-  inputFile: './adapters/simulator/public/Mazak01.log',
-  deviceFile: './adapters/simulator/public/Mazak01.xml',
+  inputFile: './adapters/simulatorElastic/public/Mazak01.log',
+  deviceFileOriginal: './adapters/simulatorElastic/public/Mazak01_original.xml',
+  deviceFile: './adapters/simulatorElastic/public/Mazak01.xml',
   acceleration: 4,
+  sender: 'SIMULATED',
+  name: 'SIMULATED',
+  originalName: 'Mazak01',
 
   app: {
     name: 'Simulator_Elastic',
