@@ -36,33 +36,32 @@ const updateObjectValues = (fromVal, toVal, result) =>{
 };
 
 const startAdapter = (err, res) =>{
-  if(err) console.error(err);
+  if(err) {
+    console.error(err);
+    return;
+  }
+
+  console.log('starting the adapter');
   adapter.start()
   device(config.elasticSource, config.acceleration, config.machinePort)
   fileServer.listen(config.filePort, config.address, () => log.info(`File server started on ${config.filePort}`))
 };
 
 // before starting the adapter, update the XML with the name and sender in the config
-if(config.sender || config.name){
   let parser = new xml2js.Parser();
   fs.readFile(config.deviceFileOriginal, function(err, data) {
       parser.parseString(data, function (err, result) {
-        if(config.sender){
-          result.MTConnectDevices.Header[0].$.sender = config.sender;
-        }
-        if(config.name){
-          result = updateObjectValues(config.originalName, config.name, result);
-        }
-          console.dir(result);
-          console.log('Done');
-          var filepath = path.normalize(config.deviceFile);
-          var builder = new xml2js.Builder();
-          var xml = builder.buildObject(result);
-          fs.writeFile(filepath, xml, startAdapter);
+        // update the sender
+        if(config.sender) result.MTConnectDevices.Header[0].$.sender = config.sender;
+        // update the name everywhere in the XML
+        if(config.name) result = updateObjectValues(config.originalName, config.name, result);
+
+        // save to new file
+        var filepath = path.normalize(config.deviceFile);
+        var builder = new xml2js.Builder();
+        var xml = builder.buildObject(result);
+        fs.writeFile(filepath, xml, startAdapter);
       });
   });
-}else{
-  startAdapter();
-}
 
 
