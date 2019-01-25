@@ -32,18 +32,18 @@ module.exports = {
   },
 
   elasticSource:{
-    index:'jitbase-workstation-events-production-leesta-*',
+    index:'jitbase-workstation-events-production-*',
     pageSize: 10,
     date:{
       from: 'now-1d/d',
       to: 'now/d',
       format: null
     },
-    workstationCode: 'LSTTS3_NL300013_009',
+    workstationCode: 'NL300013_009',
     elasticProtocol: 'https',
-    elasticUser: 'api',
-    elasticPassword: '4Yy6sGHxWCMx',
-    elasticUri: 'elastic.jitbase.com',
+    elasticUser: '',
+    elasticPassword: '',
+    elasticUri: 'example.com',
     elasticPort: 9443,
   }
 }
