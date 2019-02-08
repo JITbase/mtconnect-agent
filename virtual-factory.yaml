@@ -1,0 +1,21 @@
+version: 1.0
+services:
+  elastic:
+    username:
+    password:
+    uri:
+    port:
+    protocol: https
+    index: jitbase-workstation-events-production-*
+  jitbase:
+    agent_access_token:
+    uri:
+    protocol: https
+    port:
+parameters:
+  iso_start_date: 2019-01-01 00:00:00.000Z
+  iso_end_date: now
+  workstation_mapping:
+    nlx: nlx
+    nmv: nmv
+  agent_type: jitbase
