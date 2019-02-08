@@ -1,12 +1,11 @@
 version: 1.0
 services:
   elastic:
-    username:
+    user:
     password:
     uri:
     port:
     protocol: https
-    index: jitbase-workstation-events-production-*
   jitbase:
     agent_access_token:
     uri:
@@ -19,3 +18,4 @@ parameters:
     nlx: nlx
     nmv: nmv
   agent_type: jitbase
+  acceleration: 10

@@ -39,11 +39,10 @@ module.exports = {
       to: 'now/d',
       format: null
     },
-    workstationCode: 'NL300013_009',
-    elasticProtocol: 'https',
-    elasticUser: '',
-    elasticPassword: '',
-    elasticUri: 'example.com',
-    elasticPort: 9443,
+    protocol: 'https',
+    user: '',
+    password: '',
+    uri: 'example.com',
+    port: 9443,
   }
 }
