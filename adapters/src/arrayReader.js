@@ -1,3 +1,9 @@
+/**
+ *
+ * @param {Array} data
+ * @description Array reader tool.  Calls a callback each time an array index is read
+ * Set the callback by calling arrayReader.on('element', callback)
+ */
 function ArrayReader(data){
   this.data = data;
   this.eventsAndCallbacks = {};
@@ -9,6 +15,7 @@ function ArrayReader(data){
 ArrayReader.prototype.on = function (eventName, callback) {
   this.eventsAndCallbacks[eventName.toLowerCase()] = callback;
   if(eventName.toLowerCase() === 'element') {
+    // start reading elements when the 'element' event callback is set
     this.isRunning = true;
     this.readElement();
   }
